@@ -5,6 +5,9 @@ TODO: change activity from the arrows at the top
 TODO: Analytics: track downloads
 TODO: Full screen
 TODO: Buy me a coffee
+
+BUG: https://connect.garmin.com/modern/activity/6767576021
+BUG: https://connect.garmin.com/modern/activity/6767571262 ?
 */
 
 /**
