@@ -1,0 +1,19 @@
+{
+    "manifest_version": 2,
+    "name": "Sauce for Garmin",
+    "version": "0.1",
+  
+    "description": "Adds useful data to Garmin Connect activities",
+  
+    "icons": {
+      "48": "icons/watch_black_24dp.png"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["*://connect.garmin.com/modern/activity/*"],
+        "js": ["garmin.js"]
+      }
+    ]
+  
+  }

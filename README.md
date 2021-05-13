@@ -13,5 +13,7 @@ Browser extension enhancing the Garmin Connect website
 # Disclaimer
 The name is inspired by [Sauce for Strava](https://saucellc.io/)
 
+Watch Icon is from the [Google Material Design icon set](https://fonts.google.com/icons?icon.query=watch) licensed under [Creative Commons Attribution-ShareAlike](https://creativecommons.org/licenses/by-sa/3.0/).
+
 # License
 See the `LICENSE` file
