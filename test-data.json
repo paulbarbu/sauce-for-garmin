@@ -1,0 +1,22 @@
+[
+    {
+        "min": 50,
+        "max": 200,
+        "zones": [136, 151, 165, 180],
+        "expectedPercentages": [0.573, 0.673, 0.766, 0.866, 1]
+    },
+    {
+        "comment": "https://connect.garmin.com/modern/activity/6767576021",
+        "min": 100,
+        "max": 175,
+        "zones": [136, 151, 165, 180],
+        "expectedPercentages": [0.48, 0.68, 0.86, 1, 1]
+    },
+    {
+        "comment": "https://connect.garmin.com/modern/activity/6767571262",
+        "min": 50,
+        "max": 150,
+        "zones": [136, 151, 165, 180],
+        "expectedPercentages": [0.86, 1, 1, 1, 1]
+    }
+]
