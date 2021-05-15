@@ -1,15 +1,27 @@
+'use strict';
 (function() {
     /**
+    TODO: draw the overlay then the activity is changed using the <> button in the top right corner
     TODO: centralise all strings, especially Garmin ones
     TODO: other UI languages?
     TODO: change activity from the arrows at the top
     TODO: Analytics: track downloads
-    TODO: Full screen
+    TODO: Full screen plot overlay
     TODO: Buy me a coffee
-
-    BUG: https://connect.garmin.com/modern/activity/6767576021
-    BUG: https://connect.garmin.com/modern/activity/6767571262 ?
     */
+
+    /**
+     * Indefinitely wait for an element on the page to be available, if the element is available, return immediately
+     * @param {string} id the element's it to wait for
+     */
+    async function waitForElementId(id)
+    {
+        while(document.getElementById(id) === null)
+        {
+            // wait 100 ms
+            await new Promise(r => setTimeout(r, 100));
+        }
+    }
 
     /**
      * zone - the zone for which you need the intervals on the UI
@@ -73,15 +85,16 @@
     }
 
     async function main()
-    {
+    {        
+        await waitForElementId('tabTimeInZonesId');
+
         document.getElementById('tabTimeInZonesId').click();
         console.log('Clicked on "Time in Zones"')
         document.getElementById('tabStatsId').click();
         console.log('Clicked on "Stats"')
 
-        // wait for the Time in Zones stats to load
-        await new Promise(r => setTimeout(r, 500));
-
+        // wait for the Time in Zones tab to load
+        await waitForElementId('heart-rate-zones');
         const ticks = getHRZoneTicks();
 
         // the position of the HR plot among the other plots
