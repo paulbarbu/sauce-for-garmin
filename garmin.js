@@ -70,7 +70,8 @@
         const range = maxHr - minHr;
 
         //TODO: in (the unlikely) case the plot's minimum HR reading is above one of the HR zones, the "tick-minHr" computation will be negative, in that case set the percentage to 0
-        return ticks.map(tick => (tick-minHr)/range);
+        return ticks.map(tick => (tick-minHr)/range)
+            .map(p => Math.min(p, 1)); // there should be no higher than 100% percentages (can be the case if the plot's max HR is below zones 5 or 4)
     }
 
     function createSVGElement(el, attrs)
