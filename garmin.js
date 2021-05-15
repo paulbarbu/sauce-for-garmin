@@ -2,17 +2,49 @@
 (function() {
     /**
     TODO: draw the overlay then the activity is changed using the <> button in the top right corner
-    TODO: centralise all strings, especially Garmin ones
-    TODO: other UI languages?
-    TODO: change activity from the arrows at the top
     TODO: Analytics: track downloads
     TODO: Full screen plot overlay
     TODO: Buy me a coffee
+    TODO: other UI languages?
+    TODO: button to draw a gradient with fixed bands, so not really a gradient
+    TODO: CD: commit=deploy/publish extension (via github actions?)
     */
+
+    // contains the user's HR zones, needs to be clicked to load its contents
+    const G_HR_ZONES_TAB_ID = 'tabTimeInZonesId';
+
+    // the element holding the user's HR zones
+    const G_HR_ZONES_CLASS = 'heart-rate-zones';
+
+    // the initial tab that is loaded by Garmin on an activity's page
+    const G_STATS_TAB_ID = 'tabStatsId';
+
+    // the name/title of the HR plot, ie. the one to be overlaid with the zones bands
+    const G_HR_PLOT_NAME = 'Heart Rate';
+
+    // the prefix of the class that identifies each HR zone
+    const G_HR_ZONE_CLASS_PREFIX = 'zones-';
+
+    const G_HR_ZONE_TEXT_CLASS = 'timeInZonesDetails';
+
+    // unique id for the gradient to be used on the overlay
+    const OVERLAY_GRADIENT_ID = 'saucehrbandsoverlay';
+
+    // the class that identifies the plots on an activity's page
+    const G_PLOTS_CLASS = 'chart-name';
+
+    // the query selector for all the y axis labels of the HighCharts plots
+    const HC_YAXIS_QUERY_SELECTOR = '.highcharts-axis-labels.highcharts-yaxis-labels';
+
+    // the class of the elements holding the Y axis' text labels in HighCharts
+    const HC_YAXIS_LABEL_CLASS = 'y-axis-label';
+
+    // the class for a HighCharts plot
+    const HC_PLOT_BG_CLASS = 'highcharts-plot-background';
 
     /**
      * Indefinitely wait for an element on the page to be available, if the element is available, return immediately
-     * @param {string} id the element's it to wait for
+     * @param {string} id the element's id to wait for
      */
     async function waitForElementId(id)
     {
@@ -24,12 +56,28 @@
     }
 
     /**
+     * Indefinitely wait for an element on the page to be available, if the element is available, return immediately
+     * @param {string} cls the element's class to wait for
+     */
+     async function waitForElementClass(cls)
+     {
+         while(document.getElementsByClassName(cls).length === 0)
+         {
+             // wait 100 ms
+             await new Promise(r => setTimeout(r, 100));
+         }
+     }
+
+    /**
      * zone - the zone for which you need the intervals on the UI
      * Return: string as seen on the UI
      */
     function getGarminZoneInterval(zone)
     {
-        return document.getElementsByClassName('heart-rate-zones')[0].getElementsByClassName('zones-' + zone)[0].getElementsByClassName('timeInZonesDetails')[0].getElementsByTagName('span')[1].innerText.trim();
+        return document.getElementsByClassName(G_HR_ZONES_CLASS)[0]
+            .getElementsByClassName(G_HR_ZONE_CLASS_PREFIX + zone)[0]
+            .getElementsByClassName(G_HR_ZONE_TEXT_CLASS)[0]
+            .getElementsByTagName('span')[1].innerText.trim();
     }
 
     /**
@@ -55,7 +103,7 @@
             const gZoneInterval = getGarminZoneInterval(i);
             const zoneLimit = parseGarminZoneInterval(gZoneInterval);
             ticks.push(zoneLimit);
-            console.log(`Zone ${i}: ${gZoneInterval} - limit: ${zoneLimit}`);
+            console.debug(`Zone ${i}: ${gZoneInterval} - limit: ${zoneLimit}`);
         }
 
         return ticks;
@@ -87,23 +135,25 @@
 
     async function main()
     {        
-        await waitForElementId('tabTimeInZonesId');
+        await waitForElementId(G_HR_ZONES_TAB_ID);
 
-        document.getElementById('tabTimeInZonesId').click();
-        console.log('Clicked on "Time in Zones"')
-        document.getElementById('tabStatsId').click();
-        console.log('Clicked on "Stats"')
+        document.getElementById(G_HR_ZONES_TAB_ID).click();
+        console.debug('Clicked on "Time in Zones"')
+        document.getElementById(G_STATS_TAB_ID).click();
+        console.debug('Clicked on "Stats"')
 
         // wait for the Time in Zones tab to load
-        await waitForElementId('heart-rate-zones');
+        await waitForElementClass(G_HR_ZONES_CLASS);
         const ticks = getHRZoneTicks();
 
         // the position of the HR plot among the other plots
-        const gHRPlotPos = [...document.getElementsByClassName('chart-name')].map(el => el.innerText).indexOf('Heart Rate');
+        const gHRPlotPos = [...document.getElementsByClassName(G_PLOTS_CLASS)]
+            .map(el => el.innerText).indexOf(G_HR_PLOT_NAME);
 
         if(gHRPlotPos !== -1)
         {
-            const hrPlotLabels = [...document.querySelectorAll('.highcharts-axis-labels.highcharts-yaxis-labels')[gHRPlotPos].children].map(tick => tick.getElementsByClassName('y-axis-label')[0].innerHTML);
+            const hrPlotLabels = [...document.querySelectorAll(HC_YAXIS_QUERY_SELECTOR)[gHRPlotPos].children]
+                .map(tick => tick.getElementsByClassName(HC_YAXIS_LABEL_CLASS)[0].innerHTML);
 
             const min = parseInt(hrPlotLabels[0]);
             const max = parseInt(hrPlotLabels.slice(-1));
@@ -118,12 +168,12 @@
             console.log(`Percentage HR limits: ${percentageHRLimits}`);
 
             // get the background rect of the plot
-            const gHRBgRect = document.getElementsByClassName('highcharts-plot-background')[gHRPlotPos];
+            const gHRBgRect = document.getElementsByClassName(HC_PLOT_BG_CLASS)[gHRPlotPos];
 
             const hrBandsDefs = createSVGElement('defs', {});
             const hrBandsGradient = createSVGElement('linearGradient', {
-                'id': 'saucehrbandsoverlay',
-                // draw the bands horizontally
+                'id': OVERLAY_GRADIENT_ID,
+                // draw the bands horizontally, from the bottom to the top
                 'x1': 0,
                 'x2': 0,
                 'y1': 1,
@@ -144,11 +194,11 @@
             const hrBandsOverlay = createSVGElement('rect', {
                 'x': gHRBgRect.getAttribute('x'),
                 'y': gHRBgRect.getAttribute('y'),
-                'rx': gHRBgRect.getAttribute('rx'),
-                'ry': gHRBgRect.getAttribute('ry'),
+                'rx': gHRBgRect.getAttribute('rx'), // future-proof, not used by Garmin at the moment
+                'ry': gHRBgRect.getAttribute('ry'), // future-proof, not used by Garmin at the moment
                 'width': gHRBgRect.getAttribute('width'),
                 'height': gHRBgRect.getAttribute('height'),
-                'fill': 'url(#saucehrbandsoverlay)',
+                'fill': `url(#${OVERLAY_GRADIENT_ID})`,
             });
 
             // add the HR bands after the background of the HR plot, thus rendering it over the background        
@@ -157,7 +207,7 @@
         }
         else
         {
-            console.log('No HR plot found');
+            console.info('No HR plot found, hidden by user');
         }
     }
 
