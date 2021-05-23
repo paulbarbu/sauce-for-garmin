@@ -42,6 +42,10 @@
     // the class for a HighCharts plot
     const HC_PLOT_BG_CLASS = 'highcharts-plot-background';
 
+    // the element's class to be observed by the MutationObserver
+    // this is needed in order to display the HR overlay regardless of how the user got to the activity's page
+    const G_OBSERVED_ELEMENT_CLASS = 'main-body';
+
     /**
      * Indefinitely wait for an element on the page to be available, if the element is available, return immediately
      * @param {string} id the element's id to wait for
@@ -133,8 +137,8 @@
         return svgEl;
     }
 
-    async function main()
-    {        
+    async function renderHrOverlay()
+    {
         await waitForElementId(G_HR_ZONES_TAB_ID);
 
         document.getElementById(G_HR_ZONES_TAB_ID).click();
@@ -209,6 +213,41 @@
         {
             console.info('No HR plot found, hidden by user');
         }
+    }
+
+    async function main()
+    {   
+        await waitForElementClass(G_OBSERVED_ELEMENT_CLASS);
+        const targetNode = document.getElementsByClassName(G_OBSERVED_ELEMENT_CLASS)[0];
+        const config = { attributes: false, childList: true, subtree: true };
+
+        // Callback function to execute when mutations are observed
+        const callback = async function(mutationsList, observer) {
+            for(const mutation of mutationsList) {
+                if (mutation.type === 'childList')
+                {
+                    for(var addedChild of mutation.addedNodes)
+                    {
+                        console.debug(`Added node ${addedChild} has id ${addedChild.id} and is of type ${addedChild.tagName}`);
+                        // look for plots
+                        if(addedChild.tagName === 'svg')
+                        {
+                            console.debug('Triggering a HR overlay rendering');
+                            // rendering this on any SVG works fine since the function waits on the needed elements to become available
+                            // the downside is that it will be called multiple times
+                            renderHrOverlay();
+
+                            return;
+                        }
+                    }
+                }
+            }
+        };
+
+        const observer = new MutationObserver(callback);
+
+        // Start observing the target node for configured mutations
+        observer.observe(targetNode, config);
     }
 
     main();
