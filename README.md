@@ -10,6 +10,12 @@ Browser extension enhancing the Garmin Connect website
   HR plot with the zones overlay:
   ![HR zones overlaid on the original HR plot](imgs/hr-zones-overlay.png)
 
+# Usage
+* `sudo npm install --global web-ext`
+* `web-ext lint`
+* `web-ext build`
+
+
 # Disclaimer
 The name is inspired by [Sauce for Strava](https://saucellc.io/)
 
